@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Projetos PJ com API</title>
+    <!-- Tailwind CSS para estilização rápida e moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo para garantir que o corpo ocupe toda a altura */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        main {
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+    <!-- Cabeçalho -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-3xl font-bold text-gray-700">Controle de Projetos</h1>
+            <p class="text-gray-600 mt-1">Gerencie suas horas e faturamento de forma simples.</p>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Coluna do Formulário -->
+            <div class="lg:col-span-1">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-6">Adicionar Novo Lançamento</h2>
+
+                    <form id="project-form">
+                        <div class="mb-4">
+                            <label for="project-name" class="block text-sm font-medium text-gray-600 mb-2">Nome do Projeto</label>
+                            <input type="text" id="project-name" name="project-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: Dashboard de Vendas">
+                        </div>
+
+                         <div class="mb-4">
+                            <label for="task-owner" class="block text-sm font-medium text-gray-600 mb-2">Responsável</label>
+                            <input type="text" id="task-owner" name="task-owner" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ex: Seu Nome">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="project-type" class="block text-sm font-medium text-gray-600 mb-2">Tipo de Projeto</label>
+                            <select id="project-type" name="project-type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="Engenharia de Dados">Engenharia de Dados</option>
+                                <option value="Ciência de Dados">Ciência de Dados</option>
+                                <option value="BI">Business Intelligence (BI)</option>
+                                <option value="IA">Inteligência Artificial (IA)</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="start-time" class="block text-sm font-medium text-gray-600 mb-2">Hora Início</label>
+                                <input type="datetime-local" id="start-time" name="start-time" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="end-time" class="block text-sm font-medium text-gray-600 mb-2">Hora Fim</label>
+                                <input type="datetime-local" id="end-time" name="end-time" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label for="hourly-rate" class="block text-sm font-medium text-gray-600 mb-2">Valor da Hora (R$)</label>
+                            <input type="number" id="hourly-rate" name="hourly-rate" step="0.01" min="0" placeholder="Ex: 100.50" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out">
+                            Adicionar Lançamento
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Coluna da Tabela de Projetos -->
+            <div class="lg:col-span-2">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-6">Projetos Lançados</h2>
+                    
+                    <!-- Filtros -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label for="filter-name" class="block text-sm font-medium text-gray-600 mb-1">Filtrar por Nome</label>
+                            <input type="text" id="filter-name" placeholder="Digite o nome..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="filter-owner" class="block text-sm font-medium text-gray-600 mb-1">Filtrar por Responsável</label>
+                            <input type="text" id="filter-owner" placeholder="Digite o responsável..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="filter-type" class="block text-sm font-medium text-gray-600 mb-1">Filtrar por Tipo</label>
+                            <select id="filter-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="all">Todos os Tipos</option>
+                                <option value="Engenharia de Dados">Engenharia de Dados</option>
+                                <option value="Ciência de Dados">Ciência de Dados</option>
+                                <option value="BI">Business Intelligence (BI)</option>
+                                <option value="IA">Inteligência Artificial (IA)</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="py-3 px-4 text-left">Projeto</th>
+                                    <th class="py-3 px-4 text-left">Responsável</th>
+                                    <th class="py-3 px-4 text-left">Duração</th>
+                                    <th class="py-3 px-4 text-left">Total</th>
+                                    <th class="py-3 px-4 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="project-list">
+                                <!-- As linhas dos projetos serão inseridas aqui via JavaScript -->
+                            </tbody>
+                        </table>
+                         <p id="empty-message" class="text-center text-gray-500 py-8">Carregando projetos...</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t-2 border-gray-200 flex justify-end items-center">
+                        <span class="text-lg font-medium text-gray-600 mr-4">Total Geral:</span>
+                        <span id="grand-total" class="text-2xl font-bold text-green-600">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-white mt-8 py-4 shadow-inner">
+        <div class="container mx-auto px-6 text-center text-gray-500">
+            <p>&copy; 2024 Controle de Projetos. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const projectForm = document.getElementById('project-form');
+            const projectList = document.getElementById('project-list');
+            const grandTotalEl = document.getElementById('grand-total');
+            const emptyMessage = document.getElementById('empty-message');
+            const filterNameInput = document.getElementById('filter-name');
+            const filterOwnerInput = document.getElementById('filter-owner');
+            const filterTypeSelect = document.getElementById('filter-type');
+            
+            // URL da sua API FastAPI. Mude se estiver rodando em outro endereço.
+            const API_URL = 'https://projects-api-anm8.onrender.com';
+
+            let allProjects = []; // Armazena a lista completa de projetos
+
+            const formatCurrency = (value) => {
+                return new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(value || 0);
+            };
+
+            const formatDuration = (minutes) => {
+                if (minutes === null || isNaN(minutes) || minutes < 0) return 'Inválido';
+                const h = Math.floor(minutes / 60);
+                const m = Math.round(minutes % 60);
+                return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m`;
+            };
+
+            const renderProjects = (projects) => {
+                projectList.innerHTML = '';
+                if (!projects || projects.length === 0) {
+                    emptyMessage.textContent = 'Nenhum projeto encontrado com os filtros atuais.';
+                    emptyMessage.style.display = 'block';
+                } else {
+                    emptyMessage.style.display = 'none';
+                    projects.forEach(project => {
+                        const row = document.createElement('tr');
+                        row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-50');
+
+                        row.innerHTML = `
+                            <td class="py-3 px-4">
+                                <p class="font-semibold">${project.project_name}</p>
+                                <p class="text-xs text-gray-500">${project.project_type} | ${new Date(project.start_time).toLocaleDateString('pt-BR')}</p>
+                            </td>
+                            <td class="py-3 px-4">${project.task_owner}</td>
+                            <td class="py-3 px-4">${formatDuration(project.duration_minutes)}</td>
+                            <td class="py-3 px-4 font-bold">${formatCurrency(project.total_value)}</td>
+                            <td class="py-3 px-4 text-center">
+                                <button class="text-red-500 hover:text-red-700" onclick="deleteProject('${project.id}')" title="Excluir">
+                                    Excluir
+                                </button>
+                            </td>
+                        `;
+                        projectList.appendChild(row);
+                    });
+                }
+                updateGrandTotal(projects);
+            };
+            
+            const updateGrandTotal = (projects = []) => {
+                const total = projects.reduce((sum, project) => sum + (project.total_value || 0), 0);
+                grandTotalEl.textContent = formatCurrency(total);
+            };
+            
+            const applyFiltersAndRender = () => {
+                const nameFilter = filterNameInput.value.toLowerCase();
+                const ownerFilter = filterOwnerInput.value.toLowerCase();
+                const typeFilter = filterTypeSelect.value;
+
+                let filteredProjects = allProjects;
+
+                if (nameFilter) {
+                    filteredProjects = filteredProjects.filter(project =>
+                        project.project_name.toLowerCase().includes(nameFilter)
+                    );
+                }
+
+                if (ownerFilter) {
+                    filteredProjects = filteredProjects.filter(project =>
+                        project.task_owner.toLowerCase().includes(ownerFilter)
+                    );
+                }
+
+                if (typeFilter !== 'all') {
+                    filteredProjects = filteredProjects.filter(project =>
+                        project.project_type === typeFilter
+                    );
+                }
+
+                renderProjects(filteredProjects);
+            };
+
+            const fetchProjects = async () => {
+                try {
+                    const response = await fetch(`${API_URL}/projects/`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const projects = await response.json();
+                    allProjects = projects; // Salva a lista completa
+                    applyFiltersAndRender(); // Aplica filtros e renderiza
+                } catch (error) {
+                    console.error("Erro ao buscar projetos:", error);
+                    emptyMessage.textContent = 'Falha ao carregar dados da API.';
+                    emptyMessage.style.display = 'block';
+                }
+            };
+            
+            window.deleteProject = async (projectId) => {
+                if (confirm('Tem certeza que deseja excluir este lançamento?')) {
+                    try {
+                        const response = await fetch(`${API_URL}/projects/${projectId}`, {
+                            method: 'DELETE',
+                        });
+                        if (!response.ok) {
+                             throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        // Recarrega a lista completa após deletar
+                        fetchProjects();
+                    } catch (error) {
+                        console.error("Erro ao deletar projeto:", error);
+                        alert("Não foi possível deletar o projeto.");
+                    }
+                }
+            };
+            
+            projectForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const projectData = {
+                    project_name: document.getElementById('project-name').value,
+                    task_owner: document.getElementById('task-owner').value,
+                    project_type: document.getElementById('project-type').value,
+                    start_time: document.getElementById('start-time').value,
+                    end_time: document.getElementById('end-time').value,
+                    hourly_rate: parseFloat(document.getElementById('hourly-rate').value)
+                };
+
+                if (new Date(projectData.end_time) <= new Date(projectData.start_time)) {
+                    alert('A hora de fim deve ser posterior à hora de início.');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${API_URL}/projects/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(projectData)
+                    });
+
+                    if (!response.ok) {
+                        const errorResult = await response.json();
+                        throw new Error(errorResult.detail || `HTTP error! status: ${response.status}`);
+                    }
+
+                    // Recarrega a lista completa e limpa o formulário
+                    fetchProjects();
+                    projectForm.reset();
+                } catch (error) {
+                    console.error("Erro ao adicionar projeto:", error);
+                    alert(`Não foi possível adicionar o projeto: ${error.message}`);
+                }
+            });
+
+            // Adiciona listeners para os filtros
+            filterNameInput.addEventListener('input', applyFiltersAndRender);
+            filterOwnerInput.addEventListener('input', applyFiltersAndRender);
+            filterTypeSelect.addEventListener('change', applyFiltersAndRender);
+
+            // Carga inicial dos dados
+            fetchProjects();
+        });
+    </script>
+
+</body>
+</html>
+
