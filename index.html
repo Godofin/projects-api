@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Controle de Projetos PJ com API</title>
     <!-- Tailwind CSS para estilização rápida e moderna -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -127,10 +127,16 @@
                         </table>
                          <p id="empty-message" class="text-center text-gray-500 py-8">Carregando projetos...</p>
                     </div>
-                    <div class="mt-6 pt-4 border-t-2 border-gray-200 flex justify-end items-center">
-                        <span class="text-lg font-medium text-gray-600 mr-4">Total Geral:</span>
-                        <span id="grand-total" class="text-2xl font-bold text-green-600">R$ 0,00</span>
-                    </div>
+                    <div class="mt-6 pt-4 border-t-2 border-gray-200 flex justify-between items-center">
+                        <div>
+                           <span class="text-lg font-medium text-gray-600">Horas Totais:</span>
+                           <span id="grand-total-hours" class="text-2xl font-bold text-blue-600 ml-2">00h 00m</span>
+                       </div>
+                       <div>
+                           <span class="text-lg font-medium text-gray-600 mr-4">Total Geral:</span>
+                           <span id="grand-total" class="text-2xl font-bold text-green-600">R$ 0,00</span>
+                       </div>
+                   </div>
                 </div>
             </div>
         </div>
@@ -148,6 +154,7 @@
             const projectForm = document.getElementById('project-form');
             const projectList = document.getElementById('project-list');
             const grandTotalEl = document.getElementById('grand-total');
+            const grandTotalHoursEl = document.getElementById('grand-total-hours');
             const emptyMessage = document.getElementById('empty-message');
             const filterNameInput = document.getElementById('filter-name');
             const filterOwnerInput = document.getElementById('filter-owner');
@@ -204,8 +211,11 @@
             };
             
             const updateGrandTotal = (projects = []) => {
-                const total = projects.reduce((sum, project) => sum + (project.total_value || 0), 0);
-                grandTotalEl.textContent = formatCurrency(total);
+                const totalValue = projects.reduce((sum, project) => sum + (project.total_value || 0), 0);
+                grandTotalEl.textContent = formatCurrency(totalValue);
+
+                const totalMinutes = projects.reduce((sum, project) => sum + (project.duration_minutes || 0), 0);
+                grandTotalHoursEl.textContent = formatDuration(totalMinutes);
             };
             
             const applyFiltersAndRender = () => {
